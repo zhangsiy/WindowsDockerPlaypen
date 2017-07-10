@@ -1,0 +1,7 @@
+C:\Projects\WinContainerTest\src\TestConsoleApp\bin\Release\net452\TestConsoleApp.runtimeconfig.json
+C:\Projects\WinContainerTest\src\TestConsoleApp\bin\Release\net452\TestConsoleApp.runtimeconfig.dev.json
+C:\Projects\WinContainerTest\src\TestConsoleApp\bin\Release\net452\TestConsoleApp.exe
+C:\Projects\WinContainerTest\src\TestConsoleApp\bin\Release\net452\TestConsoleApp.pdb
+C:\Projects\WinContainerTest\src\TestConsoleApp\obj\Release\net452\TestConsoleApp.AssemblyInfo.cs
+C:\Projects\WinContainerTest\src\TestConsoleApp\obj\Release\net452\TestConsoleApp.exe
+C:\Projects\WinContainerTest\src\TestConsoleApp\obj\Release\net452\TestConsoleApp.pdb
