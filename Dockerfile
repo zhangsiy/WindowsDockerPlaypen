@@ -5,6 +5,7 @@ RUN @powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object Sy
 RUN choco install -y nodejs --version 8.1.2
 # install gulp globally
 RUN npm install gulp --global
+
 # add package folder to container
 ADD ./output/publishOutput ./app
 # set up working directory

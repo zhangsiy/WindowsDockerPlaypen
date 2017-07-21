@@ -7,7 +7,7 @@ namespace TestConsoleApp
     {
         static void Main(string[] args)
         {
-            while (true)
+            while (!Console.KeyAvailable)
             {
                 Console.WriteLine("Hello World!");
                 Thread.Sleep(2000);
