@@ -1,3 +1,11 @@
+//##########################################
+// TODO:
+//   * Real environment from git branch
+//   * Real version
+//   * Real storage for AWS secrets
+//   * Real tag/repo handling for build images
+//##########################################
+
 const {restore, test, build, publish, run} = require('gulp-dotnet-cli');
 const gulp = require('gulp');
 const del = require('del');
@@ -8,6 +16,9 @@ const argv = require('yargs').argv;
 const configuration = 'Release';
 const version = '1.1.1';
 const publishOutputDir = path.join(process.cwd(), 'output', 'publishOutput');
+
+const devDockerFilePath = path.join(process.cwd(), 'Dockerfile_Dev');
+const bundleDockerFilePath = path.join(process.cwd(), 'Dockerfile_Bundle');
 
 const environment = 'local';
 const dockerEnvironment = argv.dockerenv || environment;
@@ -20,11 +31,12 @@ const awsEcrSecret = "abAB227us4NrDovD7VbCMr5bePt4yoKN9dDn2pihwAPGyG";
 const registryUri = '119381170469.dkr.ecr.us-east-1.amazonaws.com/jeff-win-container-testbed';
 // ================================================================================================
 
-const tag = `${registryUri}:${dockerTag}`;
+const buildImageTag = `build:${dockerTag}`;
+const bundleImageTag = `${registryUri}:${dockerTag}`;
 
 // ========================= Task Definitions ======================================
 
-// --------------------------- Local Development Tasks -----------------------------------
+// --------------------------- Common Development Tasks -----------------------------------
 
 gulp.task('clean', () => del(['**/bin', '**/obj', 'output', 'outputs']));
 
@@ -78,15 +90,24 @@ gulp.task('start', [], () => {
 gulp.task('preflight', ['publish']);
 
 
-// --------------------------- Docker Tasks -----------------------------------
+// --------------------------- Local Development Docker Tasks -----------------------------------
 
-gulp.task('docker:build-image', ['preflight'], ()=>
-	spawn('docker', ['build', '-t', tag, '.'], {stdio:'inherit'})
+gulp.task('docker:compile-build-image', [], ()=>
+	spawn('docker', ['build', '-t', buildImageTag, '-f', devDockerFilePath, '.'], {stdio:'inherit'})
+	.then(() => spawn('docker', ['image', 'prune', '-f'], {stdio:'inherit'}))
+);
+
+gulp.task('docker:compile-bundle-image', ['preflight'], ()=>
+	spawn('docker', ['build', '-t', bundleImageTag, '-f', bundleDockerFilePath, '.'], {stdio:'inherit'})
 	.then(() => spawn('docker', ['image', 'prune', '-f'], {stdio:'inherit'}))
 );
 
 gulp.task('docker:clear-images', () => 
 	spawn('docker', ['image', 'prune', '-f'], {stdio:'inherit'})
 );
+
+
+// --------------------------- Build Server Tasks -----------------------------------
+
 
 
