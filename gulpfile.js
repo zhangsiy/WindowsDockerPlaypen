@@ -16,6 +16,7 @@ const argv = require('yargs').argv;
 const configuration = 'Release';
 const version = '1.1.1';
 const publishOutputDir = path.join(process.cwd(), 'output', 'publishOutput');
+const sourceDir = path.join(process.cwd(), 'src');
 
 const devDockerFilePath = path.join(process.cwd(), 'Dockerfile_Dev');
 const bundleDockerFilePath = path.join(process.cwd(), 'Dockerfile_Bundle');
@@ -92,9 +93,13 @@ gulp.task('preflight', ['publish']);
 
 // --------------------------- Local Development Docker Tasks -----------------------------------
 
-gulp.task('docker:compile-build-image', [], ()=>
+gulp.task('docker:compile-build-image', [], () =>
 	spawn('docker', ['build', '-t', buildImageTag, '-f', devDockerFilePath, '.'], {stdio:'inherit'})
 	.then(() => spawn('docker', ['image', 'prune', '-f'], {stdio:'inherit'}))
+);
+
+gulp.task('docker:build-app', [], () => 
+	spawn('docker', ['run', '-it', '--rm', '-v', `${sourceDir}:c:\\app\\src`, buildImageTag], {stdio:'inherit'})
 );
 
 gulp.task('docker:compile-bundle-image', ['preflight'], ()=>
