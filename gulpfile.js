@@ -17,9 +17,11 @@ const configuration = 'Release';
 const version = '1.1.1';
 const publishOutputDir = path.join(process.cwd(), 'output', 'publishOutput');
 const sourceDir = path.join(process.cwd(), 'src');
+const outputDir = path.join(process.cwd(), 'output');
 
-const devDockerFilePath = path.join(process.cwd(), 'Dockerfile_Dev');
-const bundleDockerFilePath = path.join(process.cwd(), 'Dockerfile_Bundle');
+const dockerFileDir = path.join(process.cwd(), 'docker');
+const buildDockerFilePath = path.join(dockerFileDir, 'build', 'Dockerfile');
+const bundleDockerFilePath = path.join(dockerFileDir, 'bundle', 'Dockerfile');
 
 const environment = 'local';
 const dockerEnvironment = argv.dockerenv || environment;
@@ -27,11 +29,12 @@ const dockerTag = argv.dockertag || `${dockerEnvironment}-${version}`;
 
 // ========================= User Variables (Fill this out!) ======================================
 const mainProjectName = 'TestConsoleApp';
-const awsEcrAccessKey = 'AKIAJ7M32J5KLWKVTTVA';
-const awsEcrSecret = "abAB227us4NrDovD7VbCMr5bePt4yoKN9dDn2pihwAPGyG";
-const registryUri = '119381170469.dkr.ecr.us-east-1.amazonaws.com/jeff-win-container-testbed';
+const awsEcrAccessKey = '[TOFILL]';
+const awsEcrSecret = "[TOFILL]";
+const registryUri = 'dummy.uri';
 // ================================================================================================
 
+const executableName = `${mainProjectName}.exe`;
 const buildImageTag = `build:${dockerTag}`;
 const bundleImageTag = `${registryUri}:${dockerTag}`;
 
@@ -39,7 +42,7 @@ const bundleImageTag = `${registryUri}:${dockerTag}`;
 
 // --------------------------- Common Development Tasks -----------------------------------
 
-gulp.task('clean', () => del(['**/bin', '**/obj', 'output', 'outputs']));
+gulp.task('clean', () => del(['**/bin', '**/obj', 'output/*']));
 
 gulp.task('restore', ['clean'], () => 
 	gulp.src('./src/*.sln')
@@ -91,28 +94,26 @@ gulp.task('start', [], () => {
 gulp.task('preflight', ['publish']);
 
 
-// --------------------------- Local Development Docker Tasks -----------------------------------
+// --------------------------- Docker Tasks -----------------------------------
 
 gulp.task('docker:compile-build-image', [], () =>
-	spawn('docker', ['build', '-t', buildImageTag, '-f', devDockerFilePath, '.'], {stdio:'inherit'})
+	spawn('docker', ['build', '-t', buildImageTag, '-f', buildDockerFilePath, '.'], {stdio:'inherit'})
 	.then(() => spawn('docker', ['image', 'prune', '-f'], {stdio:'inherit'}))
 );
 
-gulp.task('docker:build-app', [], () => 
-	spawn('docker', ['run', '-it', '--rm', '-v', `${sourceDir}:c:\\app\\src`, buildImageTag], {stdio:'inherit'})
+gulp.task('docker:build-app', ['docker:compile-build-image'], () => 
+	spawn('docker', ['run', '-it', '--rm', '-v', `${sourceDir}:c:\\app\\src`, '-v', `${outputDir}:c:\\app\\output`, buildImageTag, 'gulp publish'], {stdio:'inherit'})
 );
 
-gulp.task('docker:compile-bundle-image', ['preflight'], ()=>
-	spawn('docker', ['build', '-t', bundleImageTag, '-f', bundleDockerFilePath, '.'], {stdio:'inherit'})
+gulp.task('docker:compile-bundle-image', ['docker:build-app'], () =>
+	spawn('docker', ['build', '-t', bundleImageTag, '-f', bundleDockerFilePath, '--build-arg', `executable=${executableName}`, '--build-arg', 'artifactdir=.\\output\\publishOutput', '.'], {stdio:'inherit'})
 	.then(() => spawn('docker', ['image', 'prune', '-f'], {stdio:'inherit'}))
+);
+
+gulp.task('docker:run-app', ['docker:compile-bundle-image'], () =>
+	spawn('docker', ['run', '-it', '--rm', bundleImageTag], {stdio:'inherit'})
 );
 
 gulp.task('docker:clear-images', () => 
 	spawn('docker', ['image', 'prune', '-f'], {stdio:'inherit'})
 );
-
-
-// --------------------------- Build Server Tasks -----------------------------------
-
-
-
