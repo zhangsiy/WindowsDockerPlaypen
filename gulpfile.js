@@ -29,9 +29,7 @@ const dockerTag = argv.dockertag || `${dockerEnvironment}-${version}`;
 
 // ========================= User Variables (Fill this out!) ======================================
 const mainProjectName = 'TestConsoleApp';
-const awsEcrAccessKey = '[TOFILL]';
-const awsEcrSecret = "[TOFILL]";
-const registryUri = 'dummy.uri';
+const registryUri = '119381170469.dkr.ecr.us-east-1.amazonaws.com/jeff-win-container-testbed';
 // ================================================================================================
 
 const executableName = `${mainProjectName}.exe`;
