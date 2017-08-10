@@ -27,8 +27,11 @@ const environment = 'local';
 const dockerEnvironment = argv.dockerenv || environment;
 const dockerTag = argv.dockertag || `${dockerEnvironment}-${version}`;
 
+const containerPort = argv.containerport || '5000';
+const hostPort = argv.hostport || '80';
+
 // ========================= User Variables (Fill this out!) ======================================
-const mainProjectName = 'TestConsoleApp';
+const mainProjectName = 'TestWebApplication';
 const registryUri = '119381170469.dkr.ecr.us-east-1.amazonaws.com/jeff-win-container-testbed';
 // ================================================================================================
 
@@ -78,13 +81,14 @@ gulp.task('publish', ['build'], () =>
 		))
 );
 
-gulp.task('start', [], () => {
+gulp.task('run', [], () => {
+		process.chdir(`${publishOutputDir}`);
 		if (argv.rebuild) {
 			gulp.start('publish', () => 
-				spawn(`${publishOutputDir}/${mainProjectName}.exe`, [], { stdio: 'inherit' })
+				spawn(`${executableName}`, [], { stdio: 'inherit' })
 			);
 		} else {
-			spawn(`${publishOutputDir}/${mainProjectName}.exe`, [], { stdio: 'inherit' });
+			spawn(`${executableName}`, [], { stdio: 'inherit' });
 		}
 	}
 );
@@ -104,12 +108,12 @@ gulp.task('docker:build-app', ['docker:compile-build-image'], () =>
 );
 
 gulp.task('docker:compile-bundle-image', ['docker:build-app'], () =>
-	spawn('docker', ['build', '-t', bundleImageTag, '-f', bundleDockerFilePath, '--build-arg', `executable=${executableName}`, '--build-arg', 'artifactdir=.\\output\\publishOutput', '.'], {stdio:'inherit'})
+	spawn('docker', ['build', '-t', bundleImageTag, '-f', bundleDockerFilePath, '--build-arg', `executable=${executableName}`, '--build-arg', 'artifactdir=.\\output\\publishOutput', '--build-arg', `containerport=${containerPort}`, '.'], {stdio:'inherit'})
 	.then(() => spawn('docker', ['image', 'prune', '-f'], {stdio:'inherit'}))
 );
 
 gulp.task('docker:run-app', ['docker:compile-bundle-image'], () =>
-	spawn('docker', ['run', '-it', '--rm', bundleImageTag], {stdio:'inherit'})
+	spawn('docker', ['run', '-it', '--rm', '-p', `${hostPort}:${containerPort}`, bundleImageTag], {stdio:'inherit'})
 );
 
 gulp.task('docker:clear-images', () => 
